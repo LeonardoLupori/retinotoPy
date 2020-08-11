@@ -7,6 +7,8 @@ to work). Make sure there are no other version of FlyCap installed on
 your machine. After this procedure, the pointgray-1 adaptor should
 show up in your Hardware Browser in imaqtool.
 
+prova
+
 The .zip folder with the code and files required can be downloaded from
 these 2 sources. There are version fro 2018b and 2019a but I tested
 only the 2019a version. In case the link become dead I also included
