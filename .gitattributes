@@ -23,3 +23,5 @@
 *.pdf -crlf -diff -merge
 *.jpg -crlf -diff -merge
 *.png -crlf -diff -merge
+*.exe -crlf -diff -merge
+*.zip -crlf -diff -merge
