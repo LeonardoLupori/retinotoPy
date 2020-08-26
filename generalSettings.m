@@ -26,6 +26,7 @@ settings.camera.GammaMode = 'off';                  % Gamma correction for displ
 settings.camera.SharpnessMode = 'off';              % Postprocessing for increased sharpness
 settings.camera.FrameRateMode = 'Manual';           % 'Manual' or 'Auto'
 settings.camera.ShutterMode = 'Manual';             % 'Manual' or 'Auto'
+settings.camera.gainMode = 'Manual';                % 'Manual' or 'Auto'
 
 settings.camera.TriggerMode = 'Manual';             % 'immediate', 'manual' or 'hardware'
 settings.camera.TriggerCondition = 'risingEdge';    % Only if mode = hardware 'risingEdge' or 'fallingEdge'
@@ -78,12 +79,16 @@ settings.preStim = 1;                           % in seconds
 settings.postStim = 5;                          % in seconds
 settings.interStim = 5;                         % in seconds
 
+% Folder where to save the result of the experiments
+settings.savingFolder = 'C:\Users\Leonardo\Documents\';
+
 % -------------------------------------------------------------------------
-% TCPIP SETTINGS
+% TCP/IP SETTINGS
 % -------------------------------------------------------------------------
 settings.tcp.address = 'localhost';
 settings.tcp.port = 80;
 settings.tcp.role = 'server';
+settings.tcp.bufferSize = 4096;
 settings.tcp.connTimeout = 60;
 
 
