@@ -1,5 +1,5 @@
-# Does not track the compiled python files
+# compiled python files
 /stimuli/__pycache__/
-
-.vscode/
+# vs code settings
+/.vscode/
 

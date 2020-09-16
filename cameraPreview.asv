@@ -91,26 +91,12 @@ varargout{1} = handles.output;
 
 
 function edtGain_Callback(hObject, eventdata, handles)
+% hObject    handle to edtGain (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
 
-newValue = str2double(get(hObject,'String'));
-handles = guidata(hObject);
-
-info = propinfo(handles.src,'Gain');
-constaints = info.ConstraintValue;
-
-% Check if newValue is out of the hardware capabilities
-if newValue < constaints(1)
-    newValue = constaints(1);
-elseif newValue > constaints(2)
-    newValue = constaints(2);
-end
-
-% Put the new value in the camera and in the settings struct
-handles.src.Gain = newValue;
-handles.settings.camera.Gain = newValue;
-% Put the new value in the GUI
-set(hObject,'String',num2str(newValue))
-guidata(hObject,handles)
+% Hints: get(hObject,'String') returns contents of edtGain as text
+%        str2double(get(hObject,'String')) returns contents of edtGain as a double
 
 
 % --- Executes during object creation, after setting all properties.
@@ -142,18 +128,18 @@ margin = handles.settings.camera.confidenceMargin;
 maxFramerate = (1 / (handles.src.Shutter + margin)) * 1000;
 if newValue > maxFramerate
     newValue = maxFramerate;
-    fprintf('FrameRate higher than what possible with current shutter speed.')
+    fprintf('FrameRate value higher than what possible with current shutter speed.\')
     fprintf('...corrected to maximum (%2.2f)\n',maxFramerate)
 end
 
 % Check if newValue is out of the hardware capabilities
 if newValue < constaints(1)
     newValue = constaints(1);
-    fprintf('FrameRate lower than the minimum possible for the hardware.\n')
+    fprintf('FrameRate value lower than the minimum possible for the hardware.')
     fprintf('...corrected to minimum (%2.2f)\n',constaints(1))
 elseif newValue > constaints(2)
     newValue = constaints(2);
-    fprintf('FrameRate higher than the maximum possible for the hardware.\n')
+    fprintf('FrameRate value higher than the maximum possible for the hardware.')
     fprintf('...corrected to maximum (%2.2f)\n',constaints(2))
 end
 
@@ -162,8 +148,6 @@ handles.src.FrameRate = newValue;
 handles.settings.camera.FrameRate = newValue;
 % Put the new value in the GUI
 set(hObject,'String',num2str(newValue))
-guidata(hObject,handles)
-
 
 % --- Executes during object creation, after setting all properties.
 function edtFr_CreateFcn(hObject, eventdata, handles)
@@ -189,7 +173,9 @@ if get(hObject,'Value') %The button was pressed
     preview(handles.vid,handles.img)
     
     set(hObject,'String','Stop Preview')
-
+    
+    
+    
 else %the button was released
     stoppreview(handles.vid)
     set(hObject,'String','Start Preview')
@@ -213,8 +199,6 @@ end
 handles.src.Shutter = newValue;
 handles.settings.camera.Shutter = newValue;
 set(hObject,'String',num2str(newValue))
-
-guidata(hObject,handles)
 
 % --- Executes during object creation, after setting all properties.
 function edtShtt_CreateFcn(hObject, eventdata, handles)

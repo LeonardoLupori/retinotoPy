@@ -118,6 +118,11 @@ fprintf(' connected.\n\n')
 
 cameraPreview(vid,src,settings)
 
+
+%% Start experiment
+
+
+
 %% Cleanup
 
 % Clean TCP/IP communication
