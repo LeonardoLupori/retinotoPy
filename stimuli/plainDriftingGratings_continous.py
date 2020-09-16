@@ -45,16 +45,16 @@ event.Mouse(visible=False)
 #Open communication with the parallel port
 pPort = parallel.ParallelPort(address=0xd100)
 pPort.setData(int('00000000',2))
-print 'Parallel port initialized'
+print('Parallel port initialized')
 
 #Measure the actual framerate of the screen
-print 'Measuring actual monitor framerate...',
+print('Measuring actual monitor framerate...'),
 frameRate = stimWin.getActualFrameRate(nIdentical=50, nMaxFrames=1000, nWarmUpFrames=50, threshold=1)
 if frameRate == None:
-    print ' Unable to measure a consistent framerate for this monitor.'
+    print(' Unable to measure a consistent framerate for this monitor.')
     quit()
 else:
-    print ' Measured framerate: %f' %(frameRate)
+    print(' Measured framerate: {}'.format(frameRate))
 
 
 #----------------------------------------------
