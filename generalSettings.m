@@ -28,8 +28,8 @@ settings.camera.FrameRateMode = 'Manual';           % 'Manual' or 'Auto'
 settings.camera.ShutterMode = 'Manual';             % 'Manual' or 'Auto'
 settings.camera.gainMode = 'Manual';                % 'Manual' or 'Auto'
 
-settings.camera.TriggerMode = 'Manual';             % 'immediate', 'manual' or 'hardware'
-settings.camera.TriggerCondition = 'risingEdge';    % Only if mode = hardware 'risingEdge' or 'fallingEdge'
+settings.camera.TriggerMode = 'manual';             % 'immediate', 'manual' or 'hardware'
+settings.camera.TriggerCondition = 'risingEdge';    % Only if mode = hardware. 'risingEdge' or 'fallingEdge'
 settings.camera.TriggerSource = 'externalTriggerMode0-Source0';
 % **********************************
 %       AVAILABLE SOURCES

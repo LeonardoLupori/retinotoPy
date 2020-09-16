@@ -12,16 +12,16 @@ import stimuli.warpStimuli as wStim
 # ------------------------------------------------------------------------------
 
 # Monitor specifications
-monitorUsed = 'tryMonitor'
-frameRate = 60.0
-distCm = 20
+monitorUsed = 'tryMonitor'  # Monitor Name
+frameRate = 60.0            # The default, a more accurate will be calculated after
+distCm = 20                 # Distance eye-monitor
 
 # Periodic bar drifting
-bar_repetitions = 3        # number of bar swipes
+bar_repetitions = 3         # number of bar swipes
 bar_orientation = 'h'       # 'h' or 'v'
 bar_dir = True              # True:  False:
-bar_period = 5             # sec
-bar_width = 12               # deg
+bar_period = 5              # sec
+bar_width = 12              # deg
 bar_textRes = 512           # a power of 2 - tradeoff between preallocation speed
                             # and graphical accuracy
 
@@ -34,12 +34,20 @@ gr_waveform = 'sqr'         # 'sqr' or 'sin'
 gr_textRes = 1024           # a power of 2 - tradeoff between preallocation speed
                             # and graphical accuracy
 
+#  TPC/IP Communication
+TCP_ip = 'localhost'        # IP address of the recording machine
+TCP_port = 80               # 
+TCP_buffSize = 4096
+
 # ------------------------------------------------------------------------------
 # DO NOT EDIT PAST THIS POINT
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
 
 reversalClock = core.Clock()    # Control the contrast reversal of the background
+expDurationClock = core.Clock() # Measures the actual duration of the experiment
 
 # Setup the Monitor object based on the "monitor used template"
 mon = monitors.Monitor(monitorUsed)
@@ -76,7 +84,7 @@ warpBar = wStim.WarpedBar(
     includeBarWidth = True,
     nVert = 200)
 
-# MAIN GRATINGS (list of 2 gratings with different phases)
+# MAIN GRATINGS (list of 2 grating objects with different phases)
 gratings = []
 print('Pre-computing Warped grating texture...',end='')
 gratings.append(visual.GratingStim(
@@ -104,12 +112,13 @@ txtToUse = 0
 
 #Measure the actual framerate of the screen
 print('Measuring actual monitor framerate...'),
-frameRate = stimWin.getActualFrameRate(nIdentical=50, nMaxFrames=1000, nWarmUpFrames=50, threshold=1)
-if frameRate == None:
+measuredFrameRate = stimWin.getActualFrameRate(nIdentical=50, nMaxFrames=500, nWarmUpFrames=50, threshold=1)
+if measuredFrameRate == None:
     print(' Unable to measure a consistent framerate for this monitor.')
     sys.exit()
 else:
-    print(' Measured framerate: {}'.format(frameRate))
+    print(' Measured framerate: {}'.format(measuredFrameRate))
+    frameRate = measuredFrameRate
 
 
 nFrames = frameRate * bar_period    # set the total numb of frames for each cycle
@@ -139,9 +148,9 @@ for i in range(nFrames):
 # MAIN STIMULATION LOOP
 # ------------------------------------------------------------------------------
 
-
-
 stimWin.recordFrameIntervals = True
+expDurationClock.reset()    
+
 for frame in range(nFrames * bar_repetitions):
 
     if reversalClock.getTime() >= 1/gr_temporalFreq:
@@ -152,20 +161,30 @@ for frame in range(nFrames * bar_repetitions):
     gratings[txtToUse].draw()
     stimWin.flip()
 
+experimentDuration = expDurationClock.getTime()
 
 # ------------------------------------------------------------------------------
-# PLOT TIMING PERFORMANCE IF SOME FRAME INTERVALS WERE > 20ms
+# PLOT TIMING PERFORMANCE
 # ------------------------------------------------------------------------------
-t = np.array(stimWin.frameIntervals)
 
-if np.max(t)*1000 >= 20:
+# Experiment total duration
+expectedDuration = (1/frameRate) * nFrames * bar_repetitions
+print('EXP DURATION - measured: {:.3f}s | expected: {:.3f}s. | difference: {:.3f}s.'
+    .format(experimentDuration,expectedDuration,experimentDuration-expectedDuration))
+
+# Timing for all the frames
+t = np.array(stimWin.frameIntervals)*1000
+print('FRAME TIMING - avg: {:.1f}ms | min: {:.1f}ms | max: {:.1f}ms.'.
+    format(np.average(t),np.min(t),np.max(t)))
+if np.max(t) >= 20:
     import matplotlib.pyplot as plt
 
-    print('avgerage time: {:.3f}ms'.format(np.average(t)*1000))
-    print('max time: {:.3f} ms'.format(np.max(t)*1000))
-    print('min time: {:.3f} ms'.format(np.min(t)*1000))
-    plt.plot(t*1000)
+    print('avgerage time: {:.3f}ms'.format(np.average(t)))
+    print('max time: {:.3f} ms'.format(np.max(t)))
+    print('min time: {:.3f} ms'.format(np.min(t)))
+    plt.plot(t)
     plt.ylim([0,40])
     plt.xlabel('Frame Number')
     plt.ylabel('Frame interval (ms)')
+    plt.title('Timing for every stimulation frame')
     plt.show()

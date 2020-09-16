@@ -48,17 +48,17 @@ src.SharpnessMode = 'off';
 % Framerate
 src.FrameRateMode = 'Manual';
 tmp = propinfo(src,'FrameRate');
-limits = tmp.ConstraintValue;
+% limits = tmp.ConstraintValue;
 src.FrameRate = tmp.DefaultValue;
 % Gain
 src.GainMode = 'Manual';
 tmp = propinfo(src,'Gain');
-limits = tmp.ConstraintValue;
+% limits = tmp.ConstraintValue;
 src.Gain = tmp.DefaultValue;
 % ShutterSpeed
 src.ShutterMode = 'Manual';
 tmp = propinfo(src,'Shutter');
-limits = tmp.ConstraintValue;
+% limits = tmp.ConstraintValue;
 src.Shutter = tmp.DefaultValue;
 % -----------------------
 

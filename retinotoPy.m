@@ -38,7 +38,7 @@ end
 % Try to connect to the camera
 fprintf('Connecting to the camera [deviceID #%u]...', settings.camera.deviceID)
 try
-    vid = videoinput('pointgrey', settings.camera.deviceID , 'F7_Mono12_320x240_Mode5');
+    vid = videoinput('pointgrey', settings.camera.deviceID , settings.camera.format);
     src = getselectedsource(vid);
     fprintf(' Connected.\n')
 catch me
@@ -90,6 +90,15 @@ else
     src.Shutter = settings.camera.Shutter;
 end
 
+% Trigger
+if strcmpi(settings.camera.TriggerMode,'hardware')
+    triggerconfig(vid, settings.camera.TriggerMode,...
+        settings.camera.TriggerCondition,...
+        settings.camera.TriggerSource);
+else
+    triggerconfig(vid, settings.camera.TriggerMode);
+end
+
 fprintf(' done\n')
 
 
@@ -120,7 +129,19 @@ cameraPreview(vid,src,settings)
 
 
 %% Start experiment
+vid.FramesPerTrigger = src.FrameRate * 200;
 
+
+start(vid)
+trigger(vid)
+
+% Wait for the acquisition to end.
+% wait(vid, inf)
+
+% Retrieve the data.
+[frames, timeStamp] = getdata(vid);
+
+disp('done')
 
 
 %% Cleanup
