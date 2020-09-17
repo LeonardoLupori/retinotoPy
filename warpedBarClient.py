@@ -1,5 +1,7 @@
-from psychopy import visual, core, monitors, event, parallel
+from psychopy import visual, core, monitors, event
 import numpy as np
+import socket
+import json
 import sys
 
 # Custom modules
@@ -12,13 +14,13 @@ import stimuli.warpStimuli as wStim
 # ------------------------------------------------------------------------------
 
 # Monitor specifications
-monitorUsed = 'tryMonitor'  # Monitor Name
+monitorUsed = 'testMonitor'  # Monitor Name
 frameRate = 60.0            # The default, a more accurate will be calculated after
 distCm = 20                 # Distance eye-monitor
 
 # Periodic bar drifting
-bar_repetitions = 3         # number of bar swipes
-bar_orientation = 'h'       # 'h' or 'v'
+bar_repetitions = 5         # number of bar swipes
+bar_orientation = 'v'       # 'h' or 'v'
 bar_dir = True              # True:  False:
 bar_period = 5              # sec
 bar_width = 12              # deg
@@ -35,8 +37,8 @@ gr_textRes = 1024           # a power of 2 - tradeoff between preallocation spee
                             # and graphical accuracy
 
 #  TPC/IP Communication
-TCP_ip = 'localhost'        # IP address of the recording machine
-TCP_port = 80               # 
+TCP_ip = '192.168.0.2'      # IP address of the recording machine
+TCP_port = 40000            # 
 TCP_buffSize = 4096
 
 # ------------------------------------------------------------------------------
@@ -58,11 +60,46 @@ mon.setDistance(distCm)
 # Initialize various objects
 # ------------------------------------------------------------------------------
 
+# TCP/IP communication
+print('Connecting via TPC/IP to: ' + TCP_ip + ' on port: {}'.format(TCP_port),
+    end='... ')
+tcpObj = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+tcpObj.connect((TCP_ip, TCP_port))
+print('connected!')
+print('Waiting for server message...', end= ' ')
+try:
+    msg = tcpObj.recv(TCP_buffSize)
+    print('recieved.')
+    msg = json.loads(msg)
+    barSettings = msg['barStim']
+
+    bar_repetitions = barSettings['reps']
+    bar_orientation = barSettings['ori']
+    bar_dir = barSettings['dir']
+    bar_period = barSettings['period']
+    bar_width = barSettings['width']
+    bar_textRes = barSettings['textRes']
+
+    gr_spFreq = barSettings['chkSpFreq']
+    gr_temporalFreq = barSettings['chkTempFreq']
+    gr_contrast = barSettings['chkContrast']
+    gr_orientation = barSettings['chkOri']
+    gr_waveform = barSettings['chkWaveform']
+    gr_textRes = barSettings['chkTextRes']
+
+    tcpObj.send(b'ok')
+    tcpObj.close()
+
+except:
+    print('Error in TCP/IP message recieving. Closing connection...')
+    tcpObj.close()
+
+
 # WINDOW (Same size as the monitor in FullScreen Mode)
 stimWin = visual.Window(
     mon.getSizePix(),       # Size of the current monitor in pixels
     screen = 0,
-    fullscr = False,
+    fullscr = True,
     monitor = mon,
     units = 'deg'
     )
@@ -111,13 +148,14 @@ txtToUse = 0
 # ------------------------------------------------------------------------------
 
 #Measure the actual framerate of the screen
-print('Measuring actual monitor framerate...'),
-measuredFrameRate = stimWin.getActualFrameRate(nIdentical=50, nMaxFrames=500, nWarmUpFrames=50, threshold=1)
+print('Measuring actual monitor framerate...',end=' '),
+measuredFrameRate = stimWin.getActualFrameRate(nIdentical=50, nMaxFrames=500, 
+    nWarmUpFrames=50, threshold=1)
 if measuredFrameRate == None:
     print(' Unable to measure a consistent framerate for this monitor.')
     sys.exit()
 else:
-    print(' Measured framerate: {}'.format(measuredFrameRate))
+    print(' frameRate: {:.3f}'.format(measuredFrameRate))
     frameRate = measuredFrameRate
 
 
@@ -151,8 +189,16 @@ for i in range(nFrames):
 stimWin.recordFrameIntervals = True
 expDurationClock.reset()    
 
-for frame in range(nFrames * bar_repetitions):
+tcpObj = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+tcpObj.connect((TCP_ip, TCP_port))
 
+for frame in range(nFrames * bar_repetitions):
+    # Stop the stimulation if the user presses Q or Esc
+    if len(event.getKeys(keyList=('escape','q'))) > 0:
+        event.clearEvents('keyboard')
+        break
+
+    # Clock fo the contrast reversal
     if reversalClock.getTime() >= 1/gr_temporalFreq:
         txtToUse = (txtToUse+1) % 2
         reversalClock.reset()
@@ -162,6 +208,8 @@ for frame in range(nFrames * bar_repetitions):
     stimWin.flip()
 
 experimentDuration = expDurationClock.getTime()
+tcpObj.close()
+stimWin.close()
 
 # ------------------------------------------------------------------------------
 # PLOT TIMING PERFORMANCE
@@ -178,10 +226,6 @@ print('FRAME TIMING - avg: {:.1f}ms | min: {:.1f}ms | max: {:.1f}ms.'.
     format(np.average(t),np.min(t),np.max(t)))
 if np.max(t) >= 20:
     import matplotlib.pyplot as plt
-
-    print('avgerage time: {:.3f}ms'.format(np.average(t)))
-    print('max time: {:.3f} ms'.format(np.max(t)))
-    print('min time: {:.3f} ms'.format(np.min(t)))
     plt.plot(t)
     plt.ylim([0,40])
     plt.xlabel('Frame Number')
